@@ -1,0 +1,6 @@
+{
+  "name": "Formations Paramédicales - Centre Ali Trad | GSB Tunis Sud",
+  "description": "Plateforme officielle de gestion des inscriptions, réservations et présences par QR code aux formations continues paramédicales du Centre Intermédiaire Ali Trad - Circonscription Sanitaire de Sijoumi, Tunis Sud.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

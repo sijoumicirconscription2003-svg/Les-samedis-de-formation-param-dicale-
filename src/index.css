@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #FAF9F5;
+    color: #1e293b;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Print specifications for A4 Landscape Certificate */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+
+  html, body {
+    width: 297mm;
+    height: 210mm;
+    background: #FAF9F5 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #printable-certificate,
+  #printable-certificate * {
+    visibility: visible;
+  }
+
+  #printable-certificate {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 297mm !important;
+    height: 210mm !important;
+    margin: 0 !important;
+    padding: 12mm 15mm !important;
+    box-sizing: border-box !important;
+  }
+}

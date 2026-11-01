@@ -1,0 +1,191 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Profil professionnel du personnel paramédical ou administratif",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "nom": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "prenom": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "matricule": { "type": "string", "minLength": 1, "maxLength": 50 },
+        "fonction": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "etablissement": { "type": "string", "minLength": 1, "maxLength": 150 },
+        "telephone": { "type": "string", "maxLength": 30 },
+        "role": { "type": "string", "enum": ["participant", "responsable", "admin"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "nom", "prenom", "matricule", "fonction", "etablissement", "role"]
+    },
+    "AdminRole": {
+      "title": "AdminRole",
+      "description": "Document de privilège administrateur ou responsable de formation",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["admin", "responsable"] },
+        "addedAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "TrainingSession": {
+      "title": "TrainingSession",
+      "description": "Fiche de session de formation continue paramédicale",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "theme": { "type": "string", "minLength": 3, "maxLength": 250 },
+        "description": { "type": "string", "maxLength": 3000 },
+        "formateur": { "type": "string", "minLength": 2, "maxLength": 150 },
+        "date": { "type": "string" },
+        "heureDebut": { "type": "string" },
+        "heureFin": { "type": "string" },
+        "dureeHeures": { "type": "string" },
+        "lieu": { "type": "string" },
+        "capaciteMax": { "type": "number" },
+        "placesReservees": { "type": "number" },
+        "placesRestantes": { "type": "number" },
+        "nbListeAttente": { "type": "number" },
+        "dateLimiteInscription": { "type": "string" },
+        "estPublie": { "type": "boolean" },
+        "statut": { "type": "string", "enum": ["a_venir", "en_cours", "cloturee", "annulee"] },
+        "domaine": { "type": "string" },
+        "numeroSeance": { "type": "number" },
+        "pointageArriveeOuvert": { "type": "boolean" },
+        "pointageSortieOuvert": { "type": "boolean" },
+        "cleSecreteArrivee": { "type": "string" },
+        "cleSecreteSortie": { "type": "string" },
+        "sessionNonce": { "type": "string" },
+        "creePar": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["theme", "formateur", "date", "heureDebut", "heureFin", "lieu", "capaciteMax", "estPublie"]
+    },
+    "Registration": {
+      "title": "Registration",
+      "description": "Réservation de place et pointage d'un participant à une session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "trainingId": { "type": "string" },
+        "userId": { "type": "string" },
+        "nom": { "type": "string" },
+        "prenom": { "type": "string" },
+        "matricule": { "type": "string" },
+        "fonction": { "type": "string" },
+        "etablissement": { "type": "string" },
+        "email": { "type": "string" },
+        "numeroReservation": { "type": "string" },
+        "statut": { "type": "string", "enum": ["CONFIRMEE", "LISTE_ATTENTE", "ANNULEE"] },
+        "positionAttente": { "type": "number" },
+        "promuLe": { "type": "string" },
+        "dateExpirationPromotion": { "type": "string" },
+        "pointageArriveeValide": { "type": "boolean" },
+        "heureArrivee": { "type": "string" },
+        "pointageSortieValide": { "type": "boolean" },
+        "heureSortie": { "type": "string" },
+        "presenceFinale": { "type": "string", "enum": ["ABSENT", "ARRIVEE_SEULE", "SORTIE_SEULE", "COMPLETE"] },
+        "validationManuelle": { "type": "boolean" },
+        "motifValidationManuelle": { "type": "string" },
+        "adminValidationEmail": { "type": "string" },
+        "attestationId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["trainingId", "userId", "nom", "prenom", "matricule", "fonction", "etablissement", "email", "numeroReservation", "statut"]
+    },
+    "Certificate": {
+      "title": "Certificate",
+      "description": "Attestation officielle de présence délivrée après double pointage validé",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "numeroReference": { "type": "string" },
+        "trainingId": { "type": "string" },
+        "themeFormation": { "type": "string" },
+        "dateFormation": { "type": "string" },
+        "dureeFormation": { "type": "string" },
+        "formateur": { "type": "string" },
+        "lieu": { "type": "string" },
+        "userId": { "type": "string" },
+        "nom": { "type": "string" },
+        "prenom": { "type": "string" },
+        "matricule": { "type": "string" },
+        "fonction": { "type": "string" },
+        "etablissement": { "type": "string" },
+        "delivreeLe": { "type": "string" },
+        "delivreePar": { "type": "string" },
+        "estDerogation": { "type": "boolean" },
+        "motifDerogation": { "type": "string" },
+        "codeVerification": { "type": "string" }
+      },
+      "required": ["numeroReference", "trainingId", "themeFormation", "dateFormation", "userId", "nom", "prenom", "matricule", "delivreeLe"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Journal d'audit administratif et traçabilité des modifications",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "action": { "type": "string" },
+        "adminId": { "type": "string" },
+        "adminEmail": { "type": "string" },
+        "cibleType": { "type": "string" },
+        "cibleId": { "type": "string" },
+        "details": { "type": "string" },
+        "horodatage": { "type": "string" }
+      },
+      "required": ["action", "adminId", "adminEmail", "cibleType", "cibleId", "horodatage"]
+    },
+    "NotificationItem": {
+      "title": "NotificationItem",
+      "description": "Notification individuelle envoyée à un participant",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "titre": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["reservation_confirmee", "rappel_formation", "promotion_attente", "pointage_arrivee", "pointage_sortie", "annulation", "attestation_disponible"] },
+        "formationId": { "type": "string" },
+        "lue": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "titre", "message", "type", "lue", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Profils des participants et du personnel paramédical"
+    },
+    "/admins/{userId}": {
+      "schema": "AdminRole",
+      "description": "Documents d'habilitation administrative"
+    },
+    "/trainings/{trainingId}": {
+      "schema": "TrainingSession",
+      "description": "Sessions de formation du Centre Intermédiaire Ali Trad"
+    },
+    "/registrations/{registrationId}": {
+      "schema": "Registration",
+      "description": "Inscriptions, réservations et pointages individuels"
+    },
+    "/certificates/{certificateId}": {
+      "schema": "Certificate",
+      "description": "Attestations de formation délivrées"
+    },
+    "/audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Journal de sécurité et traçabilité des validations manuelles"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "NotificationItem",
+      "description": "Notifications destinées aux utilisateurs"
+    }
+  }
+}
