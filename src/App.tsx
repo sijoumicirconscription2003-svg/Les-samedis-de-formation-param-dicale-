@@ -21,6 +21,10 @@ import {
   PhoneCall,
   UserCheck,
   Share2,
+  X,
+  Tv,
+  BookOpen,
+  UserPlus,
 } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { testFirestoreConnection } from './lib/firebase';
@@ -33,9 +37,12 @@ import {
 import {
   listenUserCertificates,
   listenAllCertificates,
+  createSpecimenCertificateForTraining,
 } from './services/certificateService';
 import { listenUserNotifications } from './services/notificationService';
 import { bootstrapInitialDataIfEmpty, OFFICIAL_19_TRAININGS } from './services/seedData';
+import { COURSE_SUBJECT_THEMES, getCourseTheme } from './data/courseThemes';
+import { ThemeEmblem } from './components/ThemeEmblems';
 import {
   TrainingSession,
   Registration,
@@ -55,6 +62,9 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { UserProfileModal } from './components/UserProfileModal';
 import { ShareAppModal } from './components/ShareAppModal';
 import { SessionAttendanceModal } from './components/SessionAttendanceModal';
+import { FullHDTemplatesModal } from './components/FullHDTemplatesModal';
+import { CourseCertificateStudioModal } from './components/CourseCertificateStudioModal';
+import { PublicRegistrationPage } from './components/PublicRegistrationPage';
 
 function MainApp() {
   const {
@@ -64,6 +74,7 @@ function MainApp() {
     isResponsable,
     needsProfileCompletion,
     signInWithGoogle,
+    signingIn,
   } = useAuth();
 
   const [activeTab, setActiveTab] = useState<NavTab>('accueil');
@@ -76,6 +87,71 @@ function MainApp() {
   const [userRegistrations, setUserRegistrations] = useState<Registration[]>([]);
   const [userCertificates, setUserCertificates] = useState<Certificate[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+
+  // Public Inscription URL deep-link state (/inscription/:id or ?inscription=:id or #inscription=:id)
+  const [publicInscriptionTrainingId, setPublicInscriptionTrainingId] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const param = searchParams.get('inscription') || searchParams.get('formation');
+      if (param) return param;
+
+      const hash = window.location.hash || '';
+      if (hash.includes('inscription=')) {
+        const match = hash.match(/inscription=([^&]+)/);
+        if (match && match[1]) return decodeURIComponent(match[1]);
+      }
+
+      const path = window.location.pathname;
+      if (path.startsWith('/inscription/')) {
+        const id = path.replace('/inscription/', '').trim();
+        if (id) return id;
+      }
+      if (path === '/inscription' || path === '/inscription/') {
+        return 'training-fmc-s03';
+      }
+    }
+    return null;
+  });
+
+  // Synchronize URL popstate & hashchange
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const param = searchParams.get('inscription') || searchParams.get('formation');
+      if (param) {
+        setPublicInscriptionTrainingId(param);
+        return;
+      }
+      const hash = window.location.hash || '';
+      if (hash.includes('inscription=')) {
+        const match = hash.match(/inscription=([^&]+)/);
+        if (match && match[1]) {
+          setPublicInscriptionTrainingId(decodeURIComponent(match[1]));
+          return;
+        }
+      }
+      const path = window.location.pathname;
+      if (path.startsWith('/inscription/')) {
+        const id = path.replace('/inscription/', '').trim();
+        if (id) {
+          setPublicInscriptionTrainingId(id);
+          return;
+        }
+      }
+      if (path === '/inscription' || path === '/inscription/') {
+        setPublicInscriptionTrainingId('training-fmc-s03');
+        return;
+      }
+      setPublicInscriptionTrainingId(null);
+    };
+
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('hashchange', handleUrlChange);
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+      window.removeEventListener('hashchange', handleUrlChange);
+    };
+  }, []);
 
   // Modals
   const [selectedTrainingForDetail, setSelectedTrainingForDetail] =
@@ -99,9 +175,24 @@ function MainApp() {
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
+  const [isCertStudioOpen, setIsCertStudioOpen] = useState(false);
+  const [templatesTargetTrainingId, setTemplatesTargetTrainingId] = useState<string | undefined>(undefined);
   const [attendanceTargetTraining, setAttendanceTargetTraining] =
     useState<TrainingSession | null>(null);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{
+    type: 'success' | 'error' | 'info';
+    text: string;
+  } | null>(null);
+  const [cancelTargetTrainingId, setCancelTargetTrainingId] = useState<string | null>(null);
+
+  const handleOpenTemplates = (training?: TrainingSession) => {
+    if (training) {
+      setTemplatesTargetTrainingId(training.id);
+    }
+    setIsTemplatesModalOpen(true);
+  };
 
   // Filters for Programme view
   const [programmeSearch, setProgrammeSearch] = useState('');
@@ -199,13 +290,17 @@ function MainApp() {
           reservationNumber: result.reservationNumber,
         });
       } else {
-        alert(
-          `La formation est complète. Vous avez été placé(e) sur LISTE D'ATTENTE (Position #${result.waitlistPosition}). Vous serez prévenu(e) en cas de libération d'une place !`
-        );
+        setToastMessage({
+          type: 'info',
+          text: `La formation est complète. Vous avez été placé(e) sur LISTE D'ATTENTE (Position #${result.waitlistPosition}). Vous serez prévenu(e) dès qu'une place se libère !`,
+        });
       }
       setIsDetailOpen(false);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Erreur lors de la réservation.');
+      setToastMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Erreur lors de la réservation.',
+      });
     } finally {
       setBookingLoading(false);
     }
@@ -214,20 +309,27 @@ function MainApp() {
   // Handle Cancellation
   const handleCancelBooking = async (trainingId: string) => {
     if (!currentUser) return;
-    if (
-      window.confirm(
-        'Êtes-vous certain(e) de vouloir annuler votre inscription ? Votre place sera immédiatement proposée au premier participant de la liste d’attente.'
-      )
-    ) {
-      setBookingLoading(true);
-      try {
-        await cancelRegistration(trainingId, currentUser.uid);
-        setIsDetailOpen(false);
-      } catch (err) {
-        alert(err instanceof Error ? err.message : 'Erreur lors de l’annulation.');
-      } finally {
-        setBookingLoading(false);
-      }
+    setCancelTargetTrainingId(trainingId);
+  };
+
+  const executeCancellation = async () => {
+    if (!currentUser || !cancelTargetTrainingId) return;
+    setBookingLoading(true);
+    try {
+      await cancelRegistration(cancelTargetTrainingId, currentUser.uid);
+      setIsDetailOpen(false);
+      setToastMessage({
+        type: 'success',
+        text: 'Votre réservation a été annulée avec succès. La place a été automatiquement proposée au premier candidat sur liste d’attente.',
+      });
+    } catch (err) {
+      setToastMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Erreur lors de l’annulation.',
+      });
+    } finally {
+      setBookingLoading(false);
+      setCancelTargetTrainingId(null);
     }
   };
 
@@ -267,10 +369,43 @@ function MainApp() {
     return a.date.localeCompare(b.date);
   });
 
+  // Dedicated Standalone Public Registration Page View (Accessible without login)
+  if (publicInscriptionTrainingId) {
+    const targetTraining =
+      trainings.find(
+        (t) =>
+          t.id === publicInscriptionTrainingId ||
+          t.id.endsWith(publicInscriptionTrainingId) ||
+          t.id.includes(publicInscriptionTrainingId)
+      ) ||
+      trainings.find((t) => t.numeroSeance === 3) ||
+      trainings[0];
+
+    return (
+      <PublicRegistrationPage
+        training={targetTraining}
+        allTrainings={trainings}
+        onSelectTraining={(tId) => {
+          setPublicInscriptionTrainingId(tId);
+          window.history.pushState({}, '', `/?inscription=${tId}`);
+        }}
+        onNavigateHome={() => {
+          setPublicInscriptionTrainingId(null);
+          window.history.pushState({}, '', '/');
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FAF9F5] text-slate-800 flex flex-col font-sans">
       {/* Top Tunisian Health Authority Banner */}
-      <InstitutionalBanner />
+      <InstitutionalBanner
+        onOpenPublicRegistration={(tId) => {
+          setPublicInscriptionTrainingId(tId);
+          window.history.pushState({}, '', `/?inscription=${tId}`);
+        }}
+      />
 
       {/* Main Navigation */}
       <Navbar
@@ -282,6 +417,10 @@ function MainApp() {
           setIsScannerOpen(true);
         }}
         onOpenShare={() => setIsShareModalOpen(true)}
+        onOpenPublicRegistration={(tId) => {
+          setPublicInscriptionTrainingId(tId);
+          window.history.pushState({}, '', `/?inscription=${tId}`);
+        }}
         confirmedBookingsCount={confirmedBookingsCount}
         notifications={notifications}
       />
@@ -356,11 +495,28 @@ function MainApp() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
                   <div className="lg:col-span-2 space-y-3">
+                    {/* Thematic badge presenting the subject */}
+                    <div
+                      className="inline-flex items-center gap-2 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider"
+                      style={{
+                        backgroundColor: getCourseTheme(nextUpcomingTraining.numeroSeance, nextUpcomingTraining.theme).badgeBg,
+                        color: getCourseTheme(nextUpcomingTraining.numeroSeance, nextUpcomingTraining.theme).primaryColor,
+                        border: `1px solid ${getCourseTheme(nextUpcomingTraining.numeroSeance, nextUpcomingTraining.theme).borderColor}40`,
+                      }}
+                    >
+                      <ThemeEmblem
+                        type={getCourseTheme(nextUpcomingTraining.numeroSeance, nextUpcomingTraining.theme).emblemType || 'ambulance_samu'}
+                        size={16}
+                        color={getCourseTheme(nextUpcomingTraining.numeroSeance, nextUpcomingTraining.theme).primaryColor}
+                      />
+                      <span>Thème : {getCourseTheme(nextUpcomingTraining.numeroSeance, nextUpcomingTraining.theme).emblemLabel} • {getCourseTheme(nextUpcomingTraining.numeroSeance, nextUpcomingTraining.theme).themeTagline}</span>
+                    </div>
+
                     <h2 className="text-xl sm:text-2xl font-bold text-[#0A2540] leading-snug">
                       {nextUpcomingTraining.theme}
                     </h2>
-                    <p className="text-xs sm:text-sm text-slate-600 line-clamp-2 leading-relaxed">
-                      {nextUpcomingTraining.description}
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-sans bg-amber-50/50 p-3 rounded-xl border border-amber-200/50">
+                      {getCourseTheme(nextUpcomingTraining.numeroSeance, nextUpcomingTraining.theme).themePresentation}
                     </p>
 
                     <div className="flex flex-wrap items-center gap-4 text-xs text-slate-700 pt-1">
@@ -373,7 +529,7 @@ function MainApp() {
                         {nextUpcomingTraining.heureDebut} - {nextUpcomingTraining.heureFin} ({nextUpcomingTraining.dureeHeures})
                       </span>
                       <span className="flex items-center gap-1.5 font-medium">
-                        Formateur : {nextUpcomingTraining.formateur}
+                        Formateur : {nextUpcomingTraining.formateur || 'À désigner'}
                       </span>
                     </div>
                   </div>
@@ -384,12 +540,12 @@ function MainApp() {
                       <span className="text-slate-500 font-medium">Disponibilité :</span>
                       <span
                         className={`font-bold ${
-                          (nextUpcomingTraining.placesRestantes || 0) > 0
+                          (nextUpcomingTraining.placesRestantes ?? ((nextUpcomingTraining.capaciteMax || 32) - (nextUpcomingTraining.placesReservees || 0))) > 0
                             ? 'text-emerald-700'
                             : 'text-rose-700'
                         }`}
                       >
-                        {nextUpcomingTraining.placesRestantes || 0} places restantes sur {nextUpcomingTraining.capaciteMax || 25}
+                        {nextUpcomingTraining.placesRestantes ?? ((nextUpcomingTraining.capaciteMax || 32) - (nextUpcomingTraining.placesReservees || 0))} places restantes sur {nextUpcomingTraining.capaciteMax || 32}
                       </span>
                     </div>
 
@@ -401,7 +557,7 @@ function MainApp() {
                             100,
                             Math.round(
                               ((nextUpcomingTraining.placesReservees || 0) /
-                                (nextUpcomingTraining.capaciteMax || 25)) *
+                                (nextUpcomingTraining.capaciteMax || 32)) *
                                 100
                             )
                           )}%`,
@@ -412,12 +568,24 @@ function MainApp() {
                     <button
                       onClick={() => handleConfirmBooking(nextUpcomingTraining)}
                       disabled={bookingLoading}
-                      className="w-full py-3 bg-[#0A2540] hover:bg-[#0F2F57] text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                      className="w-full py-3 bg-[#0A2540] hover:bg-[#0F2F57] text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Sparkles className="w-4 h-4 text-amber-400" />
                       {(nextUpcomingTraining.placesRestantes || 0) <= 0
                         ? "S'inscrire sur liste d'attente"
                         : 'CONFIRMER MA PARTICIPATION'}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setPublicInscriptionTrainingId(nextUpcomingTraining.id);
+                        window.history.pushState({}, '', `/?inscription=${nextUpcomingTraining.id}`);
+                      }}
+                      className="w-full py-2.5 bg-gradient-to-r from-purple-800 to-indigo-900 hover:from-purple-900 hover:to-indigo-950 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-purple-400/40"
+                      title="Accéder directement à la page publique d'inscription sans compte"
+                    >
+                      <UserPlus className="w-4 h-4 text-amber-300" />
+                      Page Publique d'Inscription (Sans Compte)
                     </button>
 
                     <button
@@ -428,10 +596,164 @@ function MainApp() {
                       <Users className="w-3.5 h-3.5 text-blue-600" />
                       👥 Suivi Présences & Participants
                     </button>
+
+                    <button
+                      onClick={() => handleOpenTemplates(nextUpcomingTraining)}
+                      className="w-full py-2.5 bg-gradient-to-r from-amber-50 to-amber-100/80 hover:from-amber-100 hover:to-amber-200 text-amber-950 border border-amber-300 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 shadow-2xs"
+                      title="Ouvrir le studio des modèles élégants Full HD (1080p)"
+                    >
+                      <Tv className="w-3.5 h-3.5 text-amber-600" />
+                      Modèles & Supports Élégants Full HD
+                    </button>
                   </div>
                 </div>
               </div>
             )}
+
+            {/* 10 Training Subjects & Dedicated Themes Showcase */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-600">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    <span>Programme Officiel FMC • 10 Thèmes Graphiques & Cliniques</span>
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-bold text-[#0A2540]">
+                    Les 10 Sujets de Formation & Leurs Thèmes Dédiés
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Chaque sujet dispose d'un thème exclusif qui présente le contenu et d'une attestation A4 personnalisée
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setIsCertStudioOpen(true)}
+                  className="px-4 py-2 bg-[#0A2540] hover:bg-[#0F2F57] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0"
+                >
+                  <Award className="w-4 h-4 text-amber-400" />
+                  <span>Générateur des 10 Thèmes</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.values(COURSE_SUBJECT_THEMES).map((th) => {
+                  const trainingItem =
+                    trainings.find((t) => t.numeroSeance === th.seanceNumber) ||
+                    trainings[0];
+
+                  return (
+                    <div
+                      key={th.seanceNumber}
+                      className="rounded-3xl border-2 p-5 flex flex-col justify-between space-y-3 shadow-xs hover:shadow-md transition-all group"
+                      style={{
+                        borderColor: `${th.borderColor}40`,
+                        backgroundColor: th.bgTint,
+                      }}
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span
+                            className="px-2.5 py-0.5 rounded-lg text-xs font-black uppercase tracking-wider"
+                            style={{
+                              backgroundColor: th.badgeBg,
+                              color: th.badgeText,
+                              border: `1px solid ${th.borderColor}50`,
+                            }}
+                          >
+                            Séance #{th.seanceNumber}
+                          </span>
+                          <span
+                            className="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase"
+                            style={{
+                              backgroundColor: th.badgeBg,
+                              color: th.badgeText,
+                            }}
+                          >
+                            {th.medicalDomain}
+                          </span>
+                        </div>
+
+                        <div>
+                          <div
+                            className="text-xs font-black uppercase tracking-wide flex items-center gap-1.5"
+                            style={{ color: th.primaryColor }}
+                          >
+                            <ThemeEmblem
+                              type={th.emblemType || 'ambulance_samu'}
+                              size={16}
+                              color={th.primaryColor}
+                            />
+                            <span>Thème : {th.emblemLabel}</span>
+                          </div>
+                          <h4
+                            onClick={() => {
+                              if (trainingItem) {
+                                setSelectedTrainingForDetail(trainingItem);
+                                setIsDetailOpen(true);
+                              }
+                            }}
+                            className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0A2540] transition-colors leading-snug line-clamp-2 mt-1 cursor-pointer"
+                          >
+                            {th.themeTitle}
+                          </h4>
+                        </div>
+
+                        <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed bg-white/85 p-2.5 rounded-xl border border-white/80 shadow-2xs">
+                          {th.themePresentation}
+                        </p>
+
+                        <div className="flex flex-wrap gap-1">
+                          {th.keyConcepts.slice(0, 2).map((c, cIdx) => (
+                            <span
+                              key={cIdx}
+                              className="text-[9.5px] px-2 py-0.5 rounded-md font-medium bg-white text-slate-700 border border-slate-200 shadow-2xs"
+                            >
+                              • {c}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div
+                        className="pt-2 border-t flex items-center justify-between gap-2"
+                        style={{ borderColor: `${th.borderColor}25` }}
+                      >
+                        <button
+                          onClick={() => {
+                            if (trainingItem) {
+                              setSelectedTrainingForDetail(trainingItem);
+                              setIsDetailOpen(true);
+                            }
+                          }}
+                          className="text-xs font-bold transition-colors py-1.5 px-2.5 rounded-xl flex items-center gap-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-800"
+                        >
+                          <BookOpen className="w-3.5 h-3.5" />
+                          <span>Présentation</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            if (trainingItem) {
+                              const specCert = createSpecimenCertificateForTraining(trainingItem, {
+                                nom: userProfile?.nom || '',
+                                prenom: userProfile?.prenom || '',
+                              });
+                              setActiveCertificate(specCert);
+                            }
+                          }}
+                          className="text-xs font-extrabold text-white py-1.5 px-3 rounded-xl transition-all shadow-xs flex items-center gap-1"
+                          style={{ backgroundColor: th.primaryColor }}
+                          title="Générer l'attestation officielle pour ce thème"
+                        >
+                          <Award className="w-3.5 h-3.5" />
+                          <span>Attestation HD</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
             {/* 4 Pillars of the Ali Trad FMC Platform */}
             <div className="space-y-4">
@@ -555,6 +877,15 @@ function MainApp() {
                     Complètes
                   </button>
                 </div>
+
+                <button
+                  onClick={() => handleOpenTemplates()}
+                  className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0"
+                  title="Consulter les modèles élégants Full HD (1080p) pour chaque thème de formation"
+                >
+                  <Tv className="w-3.5 h-3.5" />
+                  <span>Modèles Full HD (1080p)</span>
+                </button>
               </div>
             </div>
 
@@ -638,6 +969,11 @@ function MainApp() {
                     onOpenAttendance={(tr) => {
                       setAttendanceTargetTraining(tr);
                     }}
+                    onOpenTemplates={handleOpenTemplates}
+                    onOpenPublicRegistration={(tId) => {
+                      setPublicInscriptionTrainingId(tId);
+                      window.history.pushState({}, '', `/?inscription=${tId}`);
+                    }}
                     bookingLoading={bookingLoading}
                   />
                 ))}
@@ -672,9 +1008,10 @@ function MainApp() {
                 </p>
                 <button
                   onClick={signInWithGoogle}
-                  className="px-6 py-2.5 bg-[#0A2540] text-white font-bold text-xs rounded-xl shadow-md"
+                  disabled={signingIn}
+                  className="px-6 py-2.5 bg-[#0A2540] hover:bg-[#0F2F57] text-white font-bold text-xs rounded-xl shadow-md disabled:opacity-60 transition-all"
                 >
-                  Se connecter avec Google
+                  {signingIn ? 'Connexion en cours...' : 'Se connecter avec Google'}
                 </button>
               </div>
             ) : userRegistrations.length === 0 ? (
@@ -938,16 +1275,27 @@ function MainApp() {
         {/* TAB 5: MES ATTESTATIONS */}
         {activeTab === 'attestations' && (
           <div className="space-y-6 animate-in fade-in">
-            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
-              <span className="text-xs font-bold text-amber-600 uppercase tracking-wider">
-                Développement Professionnel Continu
-              </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-[#0A2540]">
-                Mes Attestations Officielles de Formation
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Certificats délivrés après double scan d'assiduité au Centre Intermédiaire Ali Trad
-              </p>
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-xs font-bold text-amber-600 uppercase tracking-wider">
+                  Développement Professionnel Continu
+                </span>
+                <h2 className="text-xl sm:text-2xl font-bold text-[#0A2540]">
+                  Mes Attestations Officielles de Formation
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Certificats délivrés après double scan d'assiduité au Centre Intermédiaire Ali Trad
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsCertStudioOpen(true)}
+                className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center gap-2 shrink-0"
+                title="Générer les attestations pour chaque cours de formation en Full HD (1 Thème spécifique par cours)"
+              >
+                <Award className="w-4 h-4 text-slate-950" />
+                <span>Générateur Full HD (10 Thèmes)</span>
+              </button>
             </div>
 
             {!currentUser ? (
@@ -957,7 +1305,7 @@ function MainApp() {
                 </p>
               </div>
             ) : userCertificates.length === 0 ? (
-              <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 space-y-3">
+              <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 space-y-4">
                 <Award className="w-12 h-12 text-amber-300 mx-auto" />
                 <h3 className="font-bold text-base text-slate-800">
                   Aucune attestation délivrée pour le moment
@@ -965,6 +1313,13 @@ function MainApp() {
                 <p className="text-xs text-slate-500 max-w-md mx-auto">
                   Pour obtenir votre attestation officielle, inscrivez-vous à une formation du samedi et validez vos deux scans (arrivée et fin de séance).
                 </p>
+                <button
+                  onClick={() => setIsCertStudioOpen(true)}
+                  className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-2 mx-auto"
+                >
+                  <Sparkles className="w-4 h-4 text-slate-950" />
+                  <span>Générer et prévisualiser les 10 thèmes d'attestations Full HD</span>
+                </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1021,6 +1376,12 @@ function MainApp() {
             trainings={trainings}
             onOpenProjector={(t) => setProjectorTraining(t)}
             onViewCertificate={(c) => setActiveCertificate(c)}
+            onOpenTemplates={handleOpenTemplates}
+            onOpenCertStudio={() => setIsCertStudioOpen(true)}
+            onOpenPublicRegistration={(tId) => {
+              setPublicInscriptionTrainingId(tId);
+              window.history.pushState({}, '', `/?inscription=${tId}`);
+            }}
           />
         )}
       </main>
@@ -1055,6 +1416,12 @@ function MainApp() {
         onClose={() => setIsDetailOpen(false)}
         onConfirmBooking={handleConfirmBooking}
         onCancelBooking={handleCancelBooking}
+        onOpenTemplates={handleOpenTemplates}
+        onOpenPublicRegistration={(tId) => {
+          setIsDetailOpen(false);
+          setPublicInscriptionTrainingId(tId);
+          window.history.pushState({}, '', `/?inscription=${tId}`);
+        }}
         bookingLoading={bookingLoading}
       />
 
@@ -1119,6 +1486,86 @@ function MainApp() {
         isOpen={!!attendanceTargetTraining}
         onClose={() => setAttendanceTargetTraining(null)}
       />
+
+      {/* 9. Full HD (1080p) Templates Showcase Modal */}
+      <FullHDTemplatesModal
+        isOpen={isTemplatesModalOpen}
+        onClose={() => setIsTemplatesModalOpen(false)}
+        trainings={trainings}
+        initialTrainingId={templatesTargetTrainingId}
+      />
+
+      {/* 10. Distinct Full HD Certificate Studio Modal (1 Course = 1 Theme) */}
+      <CourseCertificateStudioModal
+        isOpen={isCertStudioOpen}
+        onClose={() => setIsCertStudioOpen(false)}
+        trainings={trainings}
+        currentUserProfile={userProfile}
+        onViewCertificate={(cert) => {
+          setActiveCertificate(cert);
+          setIsCertStudioOpen(false);
+        }}
+      />
+
+      {/* Cancellation Confirmation In-App Modal (replaces blocked window.confirm) */}
+      {cancelTargetTrainingId && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95">
+            <div className="flex items-center gap-3 text-amber-600">
+              <AlertTriangle className="w-6 h-6 shrink-0" />
+              <h3 className="text-base font-bold text-slate-900">Annulation de Réservation</h3>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Êtes-vous certain(e) de vouloir annuler votre inscription ? Votre place sera immédiatement libérée et attribuée au premier candidat sur la liste d'attente.
+            </p>
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setCancelTargetTrainingId(null)}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800"
+              >
+                Garder ma place
+              </button>
+              <button
+                type="button"
+                disabled={bookingLoading}
+                onClick={executeCancellation}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-xs disabled:opacity-50"
+              >
+                {bookingLoading ? 'Annulation...' : 'Confirmer l’annulation'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification Container */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 max-w-sm w-full animate-in fade-in slide-in-from-bottom-4">
+          <div
+            className={`p-4 rounded-2xl border flex items-start gap-3 shadow-xl ${
+              toastMessage.type === 'success'
+                ? 'bg-emerald-950 text-white border-emerald-700'
+                : toastMessage.type === 'error'
+                ? 'bg-red-950 text-white border-red-700'
+                : 'bg-[#0A2540] text-white border-blue-500'
+            }`}
+          >
+            {toastMessage.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />}
+            {toastMessage.type === 'error' && <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />}
+            {toastMessage.type === 'info' && <Clock className="w-5 h-5 text-amber-400 shrink-0" />}
+            <div className="text-xs font-medium leading-relaxed flex-1">
+              {toastMessage.text}
+            </div>
+            <button
+              onClick={() => setToastMessage(null)}
+              className="text-slate-400 hover:text-white p-0.5"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

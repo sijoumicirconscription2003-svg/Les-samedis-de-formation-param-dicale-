@@ -24,60 +24,46 @@ service cloud.firestore {
 
     // Admins collection
     match /admins/{userId} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn();
+      allow read, write: if isSignedIn();
     }
 
     // Users profile collection
     match /users/{userId} {
-      allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && (isOwner(userId) || isAdmin());
-      allow delete: if isAdmin();
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     // Trainings sessions collection
     match /trainings/{trainingId} {
       allow read: if true;
-      allow create: if isSignedIn();
-      allow delete: if isAdmin();
-      allow update: if isAdmin() || (
-        isSignedIn() &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['placesReservees', 'placesRestantes', 'nbListeAttente', 'updatedAt'])
-      );
+      allow create, delete: if isSignedIn();
+      allow update: if true;
     }
 
     // Registrations collection
     match /registrations/{registrationId} {
-      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || isAdmin());
-      allow update: if isSignedIn() && (
-        isAdmin() ||
-        (resource.data.userId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statut', 'updatedAt'])) ||
-        (resource.data.userId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pointageArriveeValide', 'heureArrivee', 'pointageSortieValide', 'heureSortie', 'presenceFinale', 'updatedAt']))
-      );
-      allow delete: if isAdmin();
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isSignedIn();
     }
 
     // Certificates collection
     match /certificates/{certificateId} {
-      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create, update, delete: if isAdmin();
+      allow read: if true;
+      allow create, update, delete: if isSignedIn();
     }
 
     // Audit logs collection
     match /audit_logs/{logId} {
-      allow read: if isAdmin();
-      allow create: if isSignedIn();
+      allow read, create: if true;
       allow update, delete: if false;
     }
 
     // Notifications collection
     match /notifications/{notificationId} {
-      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isSignedIn();
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lue']);
-      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow read, create, update, delete: if isSignedIn();
     }
   }
 }
+

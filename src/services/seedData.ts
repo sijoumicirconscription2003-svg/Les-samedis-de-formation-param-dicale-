@@ -1,4 +1,4 @@
-import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { TrainingSession } from '../types';
 
@@ -14,20 +14,20 @@ export const OFFICIAL_19_TRAININGS: Omit<TrainingSession, 'id'>[] = [
       "Savoir préparer et administrer en urgence les thérapeutiques sous prescription d'urgence",
     ],
     publicCible: "Personnel infirmier et techniciens supérieurs de santé",
-    formateur: "Dr. Khaled Ben Salem & Équipe des Urgences",
-    qualiteFormateur: "Médecin Urgentiste & Cadre de Santé",
-    date: "2026-10-24", // 24/10/2026
+    formateur: "",
+    qualiteFormateur: "",
+    date: "2026-10-24",
     heureDebut: "12:30",
     heureFin: "13:30",
     dureeHeures: "60 minutes",
     lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 22,
-    placesRestantes: 3,
+    capaciteMax: 32,
+    placesReservees: 0,
+    placesRestantes: 32,
     nbListeAttente: 0,
     dateLimiteInscription: "2026-10-23T18:00",
     estPublie: true,
-    statut: "cloturee",
+    statut: "a_venir",
     pointageArriveeOuvert: false,
     pointageSortieOuvert: false,
     cleSecreteArrivee: "SEC_ARR_S01_2026",
@@ -51,20 +51,20 @@ export const OFFICIAL_19_TRAININGS: Omit<TrainingSession, 'id'>[] = [
       "Poser les électrodes et suivre les consignes vocales du DAE en toute sécurité",
     ],
     publicCible: "Personnel soignant et médico-technique",
-    formateur: "M. Tarek Bouazizi & Dr. K. Ben Salem",
-    qualiteFormateur: "Infirmier Anesthésiste Réanimateur",
-    date: "2026-10-31", // 31/10/2026
+    formateur: "",
+    qualiteFormateur: "",
+    date: "2026-10-31",
     heureDebut: "12:30",
     heureFin: "13:30",
     dureeHeures: "60 minutes",
     lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 25,
-    placesRestantes: 0,
-    nbListeAttente: 2,
+    capaciteMax: 32,
+    placesReservees: 0,
+    placesRestantes: 32,
+    nbListeAttente: 0,
     dateLimiteInscription: "2026-10-30T18:00",
     estPublie: true,
-    statut: "cloturee",
+    statut: "a_venir",
     pointageArriveeOuvert: false,
     pointageSortieOuvert: false,
     cleSecreteArrivee: "SEC_ARR_S02_2026",
@@ -88,16 +88,20 @@ export const OFFICIAL_19_TRAININGS: Omit<TrainingSession, 'id'>[] = [
       "Pratiquer les gestes simples de mise en condition pour un malaise vagal",
     ],
     publicCible: "Infirmiers, sages-femmes et techniciens de santé",
-    formateur: "Dr. Khaled Ben Salem",
-    qualiteFormateur: "Médecin Réanimateur Urgentiste",
-    date: "2026-11-07", // 07/11/2026 (Prochaine session)
+    formateur: "Mme Hamdani Inès",
+    qualiteFormateur: "Surveillante / Formatrice en soins d'urgence",
+    date: "2026-11-07",
     heureDebut: "12:30",
     heureFin: "13:30",
     dureeHeures: "60 minutes",
     lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 17,
-    placesRestantes: 8,
+    capaciteMax: 32,
+    capaciteNormale: 32,
+    capaciteMaxAutorisee: 35,
+    autoriserPlacesSupp: false,
+    inscriptionsFermees: false,
+    placesReservees: 0,
+    placesRestantes: 32,
     nbListeAttente: 0,
     dateLimiteInscription: "2026-11-06T18:00",
     estPublie: true,
@@ -125,16 +129,16 @@ export const OFFICIAL_19_TRAININGS: Omit<TrainingSession, 'id'>[] = [
       "Alerter le médecin immédiatement face à une tachycardie ventriculaire ou un BAV",
     ],
     publicCible: "Personnel soignant et infirmiers",
-    formateur: "Dr. Meriem Trabelsi & M. Walid Gharbi",
-    qualiteFormateur: "Cardiologue & Technicien Supérieur",
-    date: "2026-11-14", // 14/11/2026
+    formateur: "",
+    qualiteFormateur: "",
+    date: "2026-11-14",
     heureDebut: "12:30",
     heureFin: "13:30",
     dureeHeures: "60 minutes",
     lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 20,
-    placesRestantes: 5,
+    capaciteMax: 32,
+    placesReservees: 0,
+    placesRestantes: 32,
     nbListeAttente: 0,
     dateLimiteInscription: "2026-11-13T18:00",
     estPublie: true,
@@ -162,16 +166,16 @@ export const OFFICIAL_19_TRAININGS: Omit<TrainingSession, 'id'>[] = [
       "Prévenir et dépister les signes d'infection locale de la plaie",
     ],
     publicCible: "Infirmiers et techniciens supérieurs",
-    formateur: "Mme. Nadia Mansour",
-    qualiteFormateur: "Surveillante d'Unité de Soins",
-    date: "2026-11-21", // 21/11/2026
+    formateur: "",
+    qualiteFormateur: "",
+    date: "2026-11-21",
     heureDebut: "12:30",
     heureFin: "13:30",
     dureeHeures: "60 minutes",
     lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 15,
-    placesRestantes: 10,
+    capaciteMax: 32,
+    placesReservees: 0,
+    placesRestantes: 32,
     nbListeAttente: 0,
     dateLimiteInscription: "2026-11-20T18:00",
     estPublie: true,
@@ -199,16 +203,16 @@ export const OFFICIAL_19_TRAININGS: Omit<TrainingSession, 'id'>[] = [
       "Mettre en œuvre la PLS et assurer la liberté des voies aériennes",
     ],
     publicCible: "Personnel paramédical",
-    formateur: "Dr. Khaled Ben Salem",
-    qualiteFormateur: "Médecin Urgentiste",
-    date: "2026-11-28", // 28/11/2026
+    formateur: "",
+    qualiteFormateur: "",
+    date: "2026-11-28",
     heureDebut: "12:30",
     heureFin: "13:30",
     dureeHeures: "60 minutes",
     lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 11,
-    placesRestantes: 14,
+    capaciteMax: 32,
+    placesReservees: 0,
+    placesRestantes: 32,
     nbListeAttente: 0,
     dateLimiteInscription: "2026-11-27T18:00",
     estPublie: true,
@@ -229,23 +233,23 @@ export const OFFICIAL_19_TRAININGS: Omit<TrainingSession, 'id'>[] = [
     numeroSeance: 7,
     domaine: "PRÉVENTION",
     theme: "Éducation pour la santé : Stratégies d'information, accompagnement et prévention patients",
-    description: "Méthodologie de communication persuasive et d'écoute active en consultation paramédicale de première ligne pour l'adhésion aux règles hygiéno-diététiques et la prévention des maladies non transmissibles.",
+    description: "Techniques d'éducation thérapeutique auprès des patients porteurs de maladies chroniques : écoute active, entretien motivationnel, délivrance d'informations adaptées et observance thérapeutique.",
     objectifs: [
-      "Identifier les freins psychologiques et culturels à l'observance",
-      "Construire un entretien d'éducation pour la santé bienveillant",
-      "Adapter les messages clés de prévention au niveau de littératie en santé",
+      "Développer une alliance thérapeutique de confiance avec le patient",
+      "Conduire un entretien d'éducation pour la santé bienveillant",
+      "Renforcer l'autonomie et l'observance thérapeutique du patient",
     ],
-    publicCible: "Infirmiers, sages-femmes, aides-soignants",
-    formateur: "Mme. Sonia Khemiri",
-    qualiteFormateur: "Cadre Paramédical de Santé Publique",
-    date: "2026-12-05", // 05/12/2026
+    publicCible: "Personnel paramédical et soignants de première ligne",
+    formateur: "",
+    qualiteFormateur: "",
+    date: "2026-12-05",
     heureDebut: "12:30",
     heureFin: "13:30",
     dureeHeures: "60 minutes",
     lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 8,
-    placesRestantes: 17,
+    capaciteMax: 32,
+    placesReservees: 0,
+    placesRestantes: 32,
     nbListeAttente: 0,
     dateLimiteInscription: "2026-12-04T18:00",
     estPublie: true,
@@ -266,23 +270,23 @@ export const OFFICIAL_19_TRAININGS: Omit<TrainingSession, 'id'>[] = [
     numeroSeance: 8,
     domaine: "SÉCURITÉ",
     theme: "Prévention des AES : Conduite à tenir lors des accidents d'exposition au sang et gestes barrières",
-    description: "Protocole national d'urgence en cas de piqûre ou coupure septique : désinfection immédiate, déclaration administrative, sérologies de référence et mise en route du traitement prophylactique post-exposition.",
+    description: "Réglementation et protocole d'urgence face à un AES : soins locaux immédiats, déclaration médico-légale obligatoire dans les délais, bilan sérologique et mesures prophylactiques.",
     objectifs: [
-      "Maîtriser les gestes barrières et l'utilisation sécurisée des dispositifs de sécurité",
-      "Appliquer la procédure d'urgence immédiate en cas d'accident avec exposition au sang",
-      "Connaître le circuit de déclaration et la prise en charge médicale sous 4 heures",
+      "Pratiquer les soins immédiats adaptés (lavage, désinfection)",
+      "Respecter le circuit de déclaration d'accident de travail",
+      "Évaluer le risque infectieux et initier la consultation spécialisée",
     ],
-    publicCible: "Tout le personnel soignant et médico-technique",
-    formateur: "Mme. Sonia Khemiri & Dr. K. Ben Salem",
-    qualiteFormateur: "Hygiéniste Hospitalier",
-    date: "2026-12-12", // 12/12/2026
+    publicCible: "Ensemble du personnel soignant et médico-technique",
+    formateur: "",
+    qualiteFormateur: "",
+    date: "2026-12-12",
     heureDebut: "12:30",
     heureFin: "13:30",
     dureeHeures: "60 minutes",
     lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 14,
-    placesRestantes: 11,
+    capaciteMax: 32,
+    placesReservees: 0,
+    placesRestantes: 32,
     nbListeAttente: 0,
     dateLimiteInscription: "2026-12-11T18:00",
     estPublie: true,
@@ -303,23 +307,23 @@ export const OFFICIAL_19_TRAININGS: Omit<TrainingSession, 'id'>[] = [
     numeroSeance: 9,
     domaine: "RELATIONNEL",
     theme: "Accueil, orientation & communication : Gestion des patients agressifs et situations conflictuelles",
-    description: "Techniques de désescalade verbale, posture professionnelle d'accueil, communication non-violente et gestion de l'agressivité des usagers et de leurs accompagnants en salle d'attente.",
+    description: "Méthodes de désescalade verbale, gestion de l'agressivité aux guichets et salles d'attente, posture professionnelle assertivité et sécurisation de l'équipe médico-administrative.",
     objectifs: [
-      "Comprendre les déclencheurs de tension et d'agressivité aux urgences/consultations",
-      "Appliquer les techniques de désamorçage verbal et corporel",
-      "Protéger sa sécurité et celle de l'équipe face à un risque d'agression physique",
+      "Désamorcer l'escalade verbale d'un patient ou accompagnant mécontent",
+      "Adopter une communication non-violente et empathique",
+      "Appliquer les règles de sécurité d'équipe en situation tendue",
     ],
-    publicCible: "Personnel soignant, d'accueil et d'orientation",
-    formateur: "M. Tarek Bouazizi",
-    qualiteFormateur: "Cadre Paramédical & Formateur en Communication",
-    date: "2026-12-19", // 19/12/2026
+    publicCible: "Personnel soignant, accueil et orientation",
+    formateur: "",
+    qualiteFormateur: "",
+    date: "2026-12-19",
     heureDebut: "12:30",
     heureFin: "13:30",
     dureeHeures: "60 minutes",
     lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 16,
-    placesRestantes: 9,
+    capaciteMax: 32,
+    placesReservees: 0,
+    placesRestantes: 32,
     nbListeAttente: 0,
     dateLimiteInscription: "2026-12-18T18:00",
     estPublie: true,
@@ -340,23 +344,23 @@ export const OFFICIAL_19_TRAININGS: Omit<TrainingSession, 'id'>[] = [
     numeroSeance: 10,
     domaine: "DROIT & ÉTHIQUE",
     theme: "Éthique professionnelle : Secret professionnel, confidentialité et respect des droits des patients",
-    description: "Cadre légal et déontologique de la pratique paramédicale : obligations relatives au secret médical, protection des données personnelles de santé et respect de la dignité du patient.",
+    description: "Fondements juridiques et déontologiques du secret médical et paramédical, gestion du dossier de soins, partage d'informations au sein de l'équipe et protection des données de santé.",
     objectifs: [
-      "Identifier les situations de risque de violation du secret professionnel",
-      "Connaître les dérogations légales au secret médical (maltraitance, déclarations obligatoires)",
-      "Intégrer les principes éthiques dans les transmissions orales et écrites",
+      "Maîtriser les obligations légales du secret professionnel",
+      "Gérer le secret partagé au sein de l'équipe pluridisciplinaire",
+      "Garantir la confidentialité des données lors des transmissions",
     ],
-    publicCible: "Ensemble des professionnels paramédicaux",
-    formateur: "Dr. Khaled Ben Salem & Juriste Santé",
-    qualiteFormateur: "Directeur Médical & Expert en Droit de la Santé",
-    date: "2026-12-26", // 26/12/2026
+    publicCible: "Tout le personnel paramédical et administratif",
+    formateur: "",
+    qualiteFormateur: "",
+    date: "2026-12-26",
     heureDebut: "12:30",
     heureFin: "13:30",
     dureeHeures: "60 minutes",
     lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 10,
-    placesRestantes: 15,
+    capaciteMax: 32,
+    placesReservees: 0,
+    placesRestantes: 32,
     nbListeAttente: 0,
     dateLimiteInscription: "2026-12-25T18:00",
     estPublie: true,
@@ -373,363 +377,80 @@ export const OFFICIAL_19_TRAININGS: Omit<TrainingSession, 'id'>[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
-  {
-    numeroSeance: 11,
-    domaine: "URGENCES PÉDIATRIQUES",
-    theme: "Convulsions et détresses respiratoires chez le nourrisson et l'enfant en centre de santé",
-    description: "Prise en charge d'urgence des convulsions fébriles de l'enfant, libération des voies aériennes, oxygénothérapie pédiatrique et évaluation du tirage intercostal et de la bronchiolite.",
-    objectifs: [
-      "Différencier convulsion fébrile simple et convulsion compliquée",
-      "Maîtriser les dosages et voies d'administration du diazépam intra-rectal",
-      "Évaluer le score de détresse respiratoire pédiatrique pour l'évacuation",
-    ],
-    publicCible: "Infirmiers et sages-femmes",
-    formateur: "Dr. Khaled Ben Salem",
-    qualiteFormateur: "Pédiatre Urgentiste",
-    date: "2027-01-02",
-    heureDebut: "12:30",
-    heureFin: "13:30",
-    dureeHeures: "60 minutes",
-    lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 7,
-    placesRestantes: 18,
-    nbListeAttente: 0,
-    dateLimiteInscription: "2027-01-01T18:00",
-    estPublie: true,
-    statut: "a_venir",
-    pointageArriveeOuvert: false,
-    pointageSortieOuvert: false,
-    cleSecreteArrivee: "SEC_ARR_S11_2027",
-    cleSecreteSortie: "SEC_DEP_S11_2027",
-    sessionNonce: "NONCE_S11_FMC",
-    consignes: [
-      "Ponctualité : Les séances débutent à 12h30 précises afin d’assurer les 60 minutes d’échanges.",
-      "Émargement : Le pointage de présence (début et fin de séance) est obligatoire à chaque session pour valider l’attestation officielle.",
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    numeroSeance: 12,
-    domaine: "SÉCURITÉ & HYGIÈNE",
-    theme: "Stérilisation, désinfection du matériel et tri sécurisé des DASRI",
-    description: "Bonnes pratiques de prédésinfection, lavage et stérilisation des instruments chirurgicaux de petite chirurgie, traçabilité des cycles et filières de tri des déchets de soins.",
-    objectifs: [
-      "Appliquer les étapes de la chaîne de stérilisation selon les normes",
-      "Éviter les erreurs de tri entre ordures ménagères et DASRI",
-      "Garantir la sécurité du personnel manipulateur et des usagers",
-    ],
-    publicCible: "Personnel soignant et aides-soignants",
-    formateur: "Mme. Sonia Khemiri",
-    qualiteFormateur: "Cadre Hygiéniste",
-    date: "2027-01-09",
-    heureDebut: "12:30",
-    heureFin: "13:30",
-    dureeHeures: "60 minutes",
-    lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 5,
-    placesRestantes: 20,
-    nbListeAttente: 0,
-    dateLimiteInscription: "2027-01-08T18:00",
-    estPublie: true,
-    statut: "a_venir",
-    pointageArriveeOuvert: false,
-    pointageSortieOuvert: false,
-    cleSecreteArrivee: "SEC_ARR_S12_2027",
-    cleSecreteSortie: "SEC_DEP_S12_2027",
-    sessionNonce: "NONCE_S12_FMC",
-    consignes: [
-      "Ponctualité : Les séances débutent à 12h30 précises afin d’assurer les 60 minutes d’échanges.",
-      "Émargement : Le pointage de présence (début et fin de séance) est obligatoire à chaque session pour valider l’attestation officielle.",
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    numeroSeance: 13,
-    domaine: "MALADIES CHRONIQUES",
-    theme: "Prise en charge infirmière et éducation thérapeutique du patient hypertendu et coronarien",
-    description: "Technique rigoureuse de mesure tensionnelle, interprétation des chiffres, détection des urgences hypertensives et conseils d'observance du traitement anti-hypertenseur.",
-    objectifs: [
-      "Respecter les conditions de mesure de la pression artérielle",
-      "Dépister les signes de retentissement aigu de l'hypertension",
-      "Accompagner le patient coronarien dans son hygiène de vie",
-    ],
-    publicCible: "Infirmiers de soins de santé de base",
-    formateur: "Dr. Meriem Trabelsi",
-    qualiteFormateur: "Cardiologue",
-    date: "2027-01-16",
-    heureDebut: "12:30",
-    heureFin: "13:30",
-    dureeHeures: "60 minutes",
-    lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 9,
-    placesRestantes: 16,
-    nbListeAttente: 0,
-    dateLimiteInscription: "2027-01-15T18:00",
-    estPublie: true,
-    statut: "a_venir",
-    pointageArriveeOuvert: false,
-    pointageSortieOuvert: false,
-    cleSecreteArrivee: "SEC_ARR_S13_2027",
-    cleSecreteSortie: "SEC_DEP_S13_2027",
-    sessionNonce: "NONCE_S13_FMC",
-    consignes: [
-      "Ponctualité : Les séances débutent à 12h30 précises afin d’assurer les 60 minutes d’échanges.",
-      "Émargement : Le pointage de présence (début et fin de séance) est obligatoire à chaque session pour valider l’attestation officielle.",
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    numeroSeance: 14,
-    domaine: "DIABÉTOLOGIE",
-    theme: "Dépistage, surveillance glycémique capillaire et prévention des lésions du pied diabétique",
-    description: "Examen systématique des pieds au monofilament, prévention des maux perforants plantaires, éducation à l'autosurveillance et conduite à tenir devant une plaie diabétique.",
-    objectifs: [
-      "Pratiquer l'examen clinique de gradation du risque podologique",
-      "Enseigner les règles d'hygiène et de chaussage au patient diabétique",
-      "Adresser en urgence toute plaie infectée ou nécrotique",
-    ],
-    publicCible: "Personnel soignant et infirmiers",
-    formateur: "Dr. Meriem Trabelsi & M. Walid Gharbi",
-    qualiteFormateur: "Diabétologue & Diététicien",
-    date: "2027-01-23",
-    heureDebut: "12:30",
-    heureFin: "13:30",
-    dureeHeures: "60 minutes",
-    lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 12,
-    placesRestantes: 13,
-    nbListeAttente: 0,
-    dateLimiteInscription: "2027-01-22T18:00",
-    estPublie: true,
-    statut: "a_venir",
-    pointageArriveeOuvert: false,
-    pointageSortieOuvert: false,
-    cleSecreteArrivee: "SEC_ARR_S14_2027",
-    cleSecreteSortie: "SEC_DEP_S14_2027",
-    sessionNonce: "NONCE_S14_FMC",
-    consignes: [
-      "Ponctualité : Les séances débutent à 12h30 précises afin d’assurer les 60 minutes d’échanges.",
-      "Émargement : Le pointage de présence (début et fin de séance) est obligatoire à chaque session pour valider l’attestation officielle.",
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    numeroSeance: 15,
-    domaine: "PRATIQUE & PHARMACOLOGIE",
-    theme: "Règles d'administration sécurisée des médicaments, calcul de doses et vigilance injectable",
-    description: "Règle des 5B (bon patient, bon médicament, bonne dose, bonne voie, bon moment), calculs de débits de perfusion et prévention des erreurs médicamenteuses graves.",
-    objectifs: [
-      "Maîtriser les formules de calcul de doses et de débits de perfusion",
-      "Connaître les incompatibilités physico-chimiques fréquentes",
-      "Gérer le signalement immédiat d'une erreur d'administration",
-    ],
-    publicCible: "Infirmiers et techniciens supérieurs",
-    formateur: "Mme. Nadia Mansour",
-    qualiteFormateur: "Cadre Paramédical de Soins",
-    date: "2027-01-30",
-    heureDebut: "12:30",
-    heureFin: "13:30",
-    dureeHeures: "60 minutes",
-    lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 6,
-    placesRestantes: 19,
-    nbListeAttente: 0,
-    dateLimiteInscription: "2027-01-29T18:00",
-    estPublie: true,
-    statut: "a_venir",
-    pointageArriveeOuvert: false,
-    pointageSortieOuvert: false,
-    cleSecreteArrivee: "SEC_ARR_S15_2027",
-    cleSecreteSortie: "SEC_DEP_S15_2027",
-    sessionNonce: "NONCE_S15_FMC",
-    consignes: [
-      "Ponctualité : Les séances débutent à 12h30 précises afin d’assurer les 60 minutes d’échanges.",
-      "Émargement : Le pointage de présence (début et fin de séance) est obligatoire à chaque session pour valider l’attestation officielle.",
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    numeroSeance: 16,
-    domaine: "SANTÉ MATERNELLE",
-    theme: "Surveillance de la femme enceinte, dépistage des signaux d'alerte et soins post-partum",
-    description: "Consultation prénatale en soins de base, dépistage de la pré-éclampsie et du diabète gestationnel, surveillance des suites de couches et promotion de l'allaitement maternel.",
-    objectifs: [
-      "Reconnaître les signes de gravité gravidique (céphalées, œdèmes, protéinurie)",
-      "Assurer un examen post-natal de qualité",
-      "Conseiller et soutenir les mères pour l'allaitement maternel exclusif",
-    ],
-    publicCible: "Sages-femmes et infirmiers de PMI",
-    formateur: "Mme. Leila Zouaoui",
-    qualiteFormateur: "Sage-Femme Major",
-    date: "2027-02-06",
-    heureDebut: "12:30",
-    heureFin: "13:30",
-    dureeHeures: "60 minutes",
-    lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 8,
-    placesRestantes: 17,
-    nbListeAttente: 0,
-    dateLimiteInscription: "2027-02-05T18:00",
-    estPublie: true,
-    statut: "a_venir",
-    pointageArriveeOuvert: false,
-    pointageSortieOuvert: false,
-    cleSecreteArrivee: "SEC_ARR_S16_2027",
-    cleSecreteSortie: "SEC_DEP_S16_2027",
-    sessionNonce: "NONCE_S16_FMC",
-    consignes: [
-      "Ponctualité : Les séances débutent à 12h30 précises afin d’assurer les 60 minutes d’échanges.",
-      "Émargement : Le pointage de présence (début et fin de séance) est obligatoire à chaque session pour valider l’attestation officielle.",
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    numeroSeance: 17,
-    domaine: "VACCINATION",
-    theme: "Calendrier vaccinal national, maintien de la chaîne du froid et gestion des effets indésirables",
-    description: "Actualités du calendrier vaccinal tunisien, surveillance des températures des réfrigérateurs de stockage, techniques d'injection pédiatrique et prise en charge des MAPI.",
-    objectifs: [
-      "Respecter les intervalles et contre-indications vaccinales",
-      "Maintenir l'intégrité de la chaîne du froid et tracer les relevés",
-      "Déclarer et gérer les manifestations post-vaccinales indésirables",
-    ],
-    publicCible: "Personnel soignant et vaccinateurs",
-    formateur: "Dr. Khaled Ben Salem & Équipe PMI",
-    qualiteFormateur: "Médecin Responsable Programme Élargi de Vaccination",
-    date: "2027-02-13",
-    heureDebut: "12:30",
-    heureFin: "13:30",
-    dureeHeures: "60 minutes",
-    lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 10,
-    placesRestantes: 15,
-    nbListeAttente: 0,
-    dateLimiteInscription: "2027-02-12T18:00",
-    estPublie: true,
-    statut: "a_venir",
-    pointageArriveeOuvert: false,
-    pointageSortieOuvert: false,
-    cleSecreteArrivee: "SEC_ARR_S17_2027",
-    cleSecreteSortie: "SEC_DEP_S17_2027",
-    sessionNonce: "NONCE_S17_FMC",
-    consignes: [
-      "Ponctualité : Les séances débutent à 12h30 précises afin d’assurer les 60 minutes d’échanges.",
-      "Émargement : Le pointage de présence (début et fin de séance) est obligatoire à chaque session pour valider l’attestation officielle.",
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    numeroSeance: 18,
-    domaine: "SOINS & DOULEUR",
-    theme: "Évaluation clinique de la douleur, administration des antalgiques et prise en charge non médicamenteuse",
-    description: "Utilisation des échelles d'hétéro et d'auto-évaluation (EVA, EN, Doloplus), paliers antalgiques de l'OMS, surveillance des effets secondaires des opioïdes et relation d'aide.",
-    objectifs: [
-      "Évaluer la douleur systématiquement comme 5ème paramètre vital",
-      "Surveiller les effets secondaires des thérapeutiques antalgiques",
-      "Utiliser les techniques d'écoute et de réassurance psychologique",
-    ],
-    publicCible: "Infirmiers et techniciens supérieurs",
-    formateur: "M. Tarek Bouazizi",
-    qualiteFormateur: "Infirmier Major Spécialisé",
-    date: "2027-02-20",
-    heureDebut: "12:30",
-    heureFin: "13:30",
-    dureeHeures: "60 minutes",
-    lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 4,
-    placesRestantes: 21,
-    nbListeAttente: 0,
-    dateLimiteInscription: "2027-02-19T18:00",
-    estPublie: true,
-    statut: "a_venir",
-    pointageArriveeOuvert: false,
-    pointageSortieOuvert: false,
-    cleSecreteArrivee: "SEC_ARR_S18_2027",
-    cleSecreteSortie: "SEC_DEP_S18_2027",
-    sessionNonce: "NONCE_S18_FMC",
-    consignes: [
-      "Ponctualité : Les séances débutent à 12h30 précises afin d’assurer les 60 minutes d’échanges.",
-      "Émargement : Le pointage de présence (début et fin de séance) est obligatoire à chaque session pour valider l’attestation officielle.",
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    numeroSeance: 19,
-    domaine: "QUALITÉ & GESTION DES RISQUES",
-    theme: "Signalement des événements indésirables associés aux soins (EIAS) et démarche qualité",
-    description: "Culture positive de l'erreur sans culpabilisation, fiche d'incident et de quasi-incident, analyse des causes profondes et amélioration continue de la sécurité des soins en circonscription.",
-    objectifs: [
-      "Savoir remplir une fiche de signalement d'événement indésirable",
-      "Participer activement à la démarche de retour d'expérience (RMM/CREX)",
-      "Contribuer à la sécurisation des parcours de soins des usagers",
-    ],
-    publicCible: "Ensemble du personnel paramédical et d'encadrement",
-    formateur: "Dr. Khaled Ben Salem & M. Tarek Bouazizi",
-    qualiteFormateur: "Responsable Qualité & Gestion des Risques",
-    date: "2027-02-27",
-    heureDebut: "12:30",
-    heureFin: "13:30",
-    dureeHeures: "60 minutes",
-    lieu: "Salle de réunion du Centre Intermédiaire Ali Trad",
-    capaciteMax: 25,
-    placesReservees: 3,
-    placesRestantes: 22,
-    nbListeAttente: 0,
-    dateLimiteInscription: "2027-02-26T18:00",
-    estPublie: true,
-    statut: "a_venir",
-    pointageArriveeOuvert: false,
-    pointageSortieOuvert: false,
-    cleSecreteArrivee: "SEC_ARR_S19_2027",
-    cleSecreteSortie: "SEC_DEP_S19_2027",
-    sessionNonce: "NONCE_S19_FMC",
-    consignes: [
-      "Ponctualité : Les séances débutent à 12h30 précises afin d’assurer les 60 minutes d’échanges.",
-      "Émargement : Le pointage de présence (début et fin de séance) est obligatoire à chaque session pour valider l’attestation officielle.",
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
 ];
 
-export async function syncOfficial19Trainings(force = false): Promise<number> {
-  // Only attempt write if authenticated to avoid permission errors
-  if (!auth.currentUser) {
-    return 0;
-  }
+// Alias for backwards compatibility
+export const OFFICIAL_10_TRAININGS = OFFICIAL_19_TRAININGS;
 
+// Explicitly delete any training sessions from 02/01/2027 to 27/02/2027
+export async function delete2027Trainings(): Promise<number> {
   try {
     const snap = await getDocs(collection(db, 'trainings'));
-    // If not forced and already has 19 items, skip
-    if (!force && snap.size >= 19) {
-      return 0;
-    }
-
     let count = 0;
-    for (let i = 0; i < OFFICIAL_19_TRAININGS.length; i++) {
-      const item = OFFICIAL_19_TRAININGS[i];
+    const batch = writeBatch(db);
+
+    snap.docs.forEach((docSnap) => {
+      const data = docSnap.data();
+      const date = data.date || '';
+      const num = Number(data.numeroSeance) || 0;
+      const is2027 =
+        (date >= '2027-01-01' && date <= '2027-02-28') ||
+        num >= 11 ||
+        docSnap.id.includes('s11') ||
+        docSnap.id.includes('s12') ||
+        docSnap.id.includes('s13') ||
+        docSnap.id.includes('s14') ||
+        docSnap.id.includes('s15') ||
+        docSnap.id.includes('s16') ||
+        docSnap.id.includes('s17') ||
+        docSnap.id.includes('s18') ||
+        docSnap.id.includes('s19');
+
+      if (is2027) {
+        batch.delete(doc(db, 'trainings', docSnap.id));
+        count++;
+      }
+    });
+
+    if (count > 0) {
+      await batch.commit();
+      console.log(`Deleted ${count} 2027 training sessions from Firestore.`);
+    }
+    return count;
+  } catch (err) {
+    console.error('Error deleting 2027 trainings:', err);
+    throw err;
+  }
+}
+
+export async function syncOfficial19Trainings(force = true): Promise<number> {
+  try {
+    // 1. Delete all 2027 sessions (02/01/2027 to 27/02/2027)
+    await delete2027Trainings();
+
+    // 2. Sync the 10 official 2026 sessions
+    let count = 0;
+    for (let i = 0; i < OFFICIAL_10_TRAININGS.length; i++) {
+      const item = OFFICIAL_10_TRAININGS[i];
       const customId = `training-fmc-s${String(i + 1).padStart(2, '0')}`;
+      const capaciteNormale = item.capaciteNormale || 32;
+      const capaciteMaxAutorisee = item.capaciteMaxAutorisee || 35;
       await setDoc(
         doc(db, 'trainings', customId),
         {
           ...item,
           id: customId,
+          capaciteNormale,
+          capaciteMax: capaciteNormale,
+          capaciteMaxAutorisee,
+          autoriserPlacesSupp: item.autoriserPlacesSupp || false,
+          inscriptionsFermees: item.inscriptionsFermees || false,
+          placesReservees: 0,
+          placesRestantes: capaciteNormale,
+          nbListeAttente: 0,
+          formateur: item.formateur || '',
+          qualiteFormateur: item.qualiteFormateur || '',
+          updatedAt: new Date().toISOString(),
         },
         { merge: true }
       );
@@ -737,8 +458,72 @@ export async function syncOfficial19Trainings(force = false): Promise<number> {
     }
     return count;
   } catch (error) {
-    console.warn('Sync official training sessions deferred:', error instanceof Error ? error.message : error);
-    return 0;
+    console.error('Sync official training sessions error:', error);
+    throw error;
+  }
+}
+
+// Reset all existing Firestore training sessions to capacity 32, 0 reserved, and clear trainer names
+export async function resetAllTrainingsPlacesAndCapacity(capaciteMax = 32, clearTrainer = true): Promise<number> {
+  try {
+    // 1. Fetch all training documents in Firestore
+    const snap = await getDocs(collection(db, 'trainings'));
+    let count = 0;
+
+    if (!snap.empty) {
+      // Process in batches of 400 to respect Firestore batch limit of 500
+      const docs = snap.docs;
+      for (let i = 0; i < docs.length; i += 400) {
+        const batch = writeBatch(db);
+        const chunk = docs.slice(i, i + 400);
+        chunk.forEach((d) => {
+          const ref = doc(db, 'trainings', d.id);
+          const updateData: Record<string, any> = {
+            capaciteMax: capaciteMax,
+            placesReservees: 0,
+            placesRestantes: capaciteMax,
+            nbListeAttente: 0,
+            updatedAt: new Date().toISOString(),
+          };
+          if (clearTrainer) {
+            updateData.formateur = '';
+            updateData.qualiteFormateur = '';
+          }
+          batch.update(ref, updateData);
+          count++;
+        });
+        await batch.commit();
+      }
+    }
+
+    // 2. Also ensure all 19 official sessions are synchronized with 32 places and empty trainer
+    const syncedCount = await syncOfficial19Trainings(true);
+    if (count === 0) {
+      count = syncedCount;
+    }
+
+    // 3. Clear existing test registrations so registered count is truly 0
+    try {
+      const regSnap = await getDocs(collection(db, 'registrations'));
+      if (!regSnap.empty) {
+        const regDocs = regSnap.docs;
+        for (let i = 0; i < regDocs.length; i += 400) {
+          const regBatch = writeBatch(db);
+          const chunk = regDocs.slice(i, i + 400);
+          chunk.forEach((d) => {
+            regBatch.delete(doc(db, 'registrations', d.id));
+          });
+          await regBatch.commit();
+        }
+      }
+    } catch (regErr) {
+      console.warn('Optional cleanup of registrations skipped:', regErr);
+    }
+
+    return count;
+  } catch (err) {
+    console.error('Error resetting trainings capacity and places:', err);
+    throw err;
   }
 }
 
@@ -746,6 +531,56 @@ export async function bootstrapInitialDataIfEmpty(): Promise<boolean> {
   if (!auth.currentUser) {
     return false;
   }
-  const synced = await syncOfficial19Trainings(false);
-  return synced > 0;
+  const snap = await getDocs(collection(db, 'trainings'));
+  if (snap.empty) {
+    const synced = await syncOfficial19Trainings(true);
+    return synced > 0;
+  }
+  // Auto-clean any legacy default trainers and ensure 32 places
+  await sanitizeTrainingsData();
+  return false;
+}
+
+// Automatic background cleaner to purge 2027 sessions, legacy trainer names, and ensure 32 capacity
+export async function sanitizeTrainingsData(): Promise<void> {
+  if (!auth.currentUser) return;
+  try {
+    // 1. Delete 2027 sessions from Firestore
+    await delete2027Trainings();
+
+    const snap = await getDocs(collection(db, 'trainings'));
+    if (snap.empty) return;
+
+    const batch = writeBatch(db);
+    let needsCommit = false;
+
+    snap.docs.forEach((d) => {
+      const data = d.data();
+      const trainerStr = (data.formateur || '').toLowerCase();
+      const isLegacyTrainer =
+        trainerStr.includes('khaled') ||
+        trainerStr.includes('bouazizi') ||
+        trainerStr.includes('salem');
+
+      if (isLegacyTrainer || data.capaciteMax !== 32) {
+        batch.update(doc(db, 'trainings', d.id), {
+          formateur: '',
+          qualiteFormateur: '',
+          capaciteMax: 32,
+          placesReservees: 0,
+          placesRestantes: 32,
+          nbListeAttente: 0,
+          updatedAt: new Date().toISOString(),
+        });
+        needsCommit = true;
+      }
+    });
+
+    if (needsCommit) {
+      await batch.commit();
+      console.log('Sanitized legacy trainer names and reset capacity to 32 max.');
+    }
+  } catch (err) {
+    console.warn('Auto sanitize deferred:', err);
+  }
 }

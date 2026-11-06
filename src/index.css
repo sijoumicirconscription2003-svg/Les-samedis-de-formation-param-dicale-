@@ -19,31 +19,72 @@
     margin: 0;
   }
 
-  html, body {
-    width: 297mm;
-    height: 210mm;
-    background: #FAF9F5 !important;
+  *, *:before, *:after {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  body * {
-    visibility: hidden;
-  }
-
-  #printable-certificate,
-  #printable-certificate * {
-    visibility: visible;
-  }
-
-  #printable-certificate {
-    position: fixed;
-    left: 0;
-    top: 0;
+  html, body {
     width: 297mm !important;
     height: 210mm !important;
     margin: 0 !important;
-    padding: 12mm 15mm !important;
+    padding: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
+  }
+
+  /* Hide navigation, toolbars, and background elements */
+  nav,
+  header,
+  footer,
+  button,
+  .print\:hidden,
+  .print-hidden,
+  [data-print-hidden="true"] {
+    display: none !important;
+  }
+
+  /* Certificate modal container */
+  .certificate-modal-wrapper {
+    position: static !important;
+    inset: auto !important;
+    width: 297mm !important;
+    height: 210mm !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  .certificate-card-wrapper {
+    width: 297mm !important;
+    height: 210mm !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
+  }
+
+  #printable-certificate {
+    position: relative !important;
+    width: 297mm !important;
+    height: 210mm !important;
+    max-width: none !important;
+    aspect-ratio: auto !important;
+    margin: 0 !important;
+    padding: 10mm 14mm !important;
     box-sizing: border-box !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 }

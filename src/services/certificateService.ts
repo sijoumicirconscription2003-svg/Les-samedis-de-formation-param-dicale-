@@ -57,7 +57,7 @@ export async function issueCertificate(
     userId: registration.userId,
     nom: registration.nom,
     prenom: registration.prenom,
-    matricule: registration.matricule,
+    matricule: registration.matricule || '',
     fonction: registration.fonction,
     etablissement: registration.etablissement,
     delivreeLe: now,
@@ -65,6 +65,8 @@ export async function issueCertificate(
     estDerogation: isDerogation,
     motifDerogation: isDerogation ? motifDerogation : '',
     codeVerification,
+    numeroSeance: training.numeroSeance,
+    domaine: training.domaine,
   };
 
   try {
@@ -144,4 +146,43 @@ export function listenAllCertificates(callback: (certificates: Certificate[]) =>
       handleFirestoreError(err, OperationType.LIST, 'certificates');
     }
   );
+}
+
+// Generate an immediate Specimen / Sample Certificate for any training session
+export function createSpecimenCertificateForTraining(
+  training: TrainingSession,
+  participant?: {
+    nom?: string;
+    prenom?: string;
+    matricule?: string;
+    fonction?: string;
+    etablissement?: string;
+  }
+): Certificate {
+  const year = new Date().getFullYear();
+  const randNum = Math.floor(1000 + Math.random() * 9000);
+  const seance = training.numeroSeance ? String(training.numeroSeance).padStart(2, '0') : '01';
+
+  return {
+    id: `cert-specimen-s${seance}-${training.id}`,
+    numeroReference: `AT-${year}-FMC-S${seance}-${randNum}`,
+    trainingId: training.id,
+    themeFormation: training.theme,
+    dateFormation: training.date,
+    dureeFormation: training.dureeHeures || '60 minutes',
+    formateur: training.formateur || 'Équipe Pédagogique Ali Trad',
+    lieu: training.lieu || 'Salle de réunion du Centre Intermédiaire Ali Trad',
+    userId: 'specimen-participant',
+    nom: participant?.nom || '',
+    prenom: participant?.prenom || '',
+    matricule: participant?.matricule || '',
+    fonction: participant?.fonction || '',
+    etablissement: participant?.etablissement || 'Centre Intermédiaire Ali Trad',
+    delivreeLe: new Date().toISOString(),
+    delivreePar: 'Administration Circonscription Sanitaire Sijoumi',
+    estDerogation: false,
+    codeVerification: `VERIF-S${seance}-${randNum}`,
+    numeroSeance: training.numeroSeance,
+    domaine: training.domaine,
+  };
 }

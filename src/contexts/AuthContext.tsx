@@ -17,6 +17,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isResponsable: boolean;
   loading: boolean;
+  signingIn: boolean;
   needsProfileCompletion: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -34,6 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isAdminFromDoc, setIsAdminFromDoc] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [signingIn, setSigningIn] = useState<boolean>(false);
 
   // Load user profile
   const fetchUserProfile = async (user: User) => {
@@ -84,13 +86,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signInWithGoogle = async () => {
+    if (signingIn) return;
+    setSigningIn(true);
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     try {
       await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error('Error during Google sign in:', error);
-      throw error;
+    } catch (error: any) {
+      const code = error?.code || '';
+      if (
+        code === 'auth/cancelled-popup-request' ||
+        code === 'auth/popup-closed-by-user' ||
+        code === 'auth/user-cancelled' ||
+        code === 'auth/popup-blocked'
+      ) {
+        // Normal user cancellation or duplicate popup cancellation: return gracefully
+        return;
+      }
+      console.warn('Notice during Google sign in:', error?.message || error);
+    } finally {
+      setSigningIn(false);
     }
   };
 
@@ -188,6 +203,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin,
         isResponsable,
         loading,
+        signingIn,
         needsProfileCompletion,
         signInWithGoogle,
         signOut,

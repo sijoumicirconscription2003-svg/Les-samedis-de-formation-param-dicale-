@@ -10,8 +10,16 @@ import {
   ArrowRight,
   Sparkles,
   QrCode,
+  Tv,
+  Award,
+  BookOpen,
+  Layers,
+  ShieldCheck,
+  UserPlus,
 } from 'lucide-react';
 import { TrainingSession, Registration } from '../types';
+import { getCourseTheme } from '../data/courseThemes';
+import { ThemeEmblem } from './ThemeEmblems';
 
 interface Props {
   training: TrainingSession;
@@ -20,6 +28,8 @@ interface Props {
   onConfirmBooking: (training: TrainingSession) => void;
   onOpenScan?: (training: TrainingSession) => void;
   onOpenAttendance?: (training: TrainingSession) => void;
+  onOpenTemplates?: (training: TrainingSession) => void;
+  onOpenPublicRegistration?: (trainingId: string) => void;
   bookingLoading: boolean;
 }
 
@@ -30,14 +40,17 @@ export const TrainingCard: React.FC<Props> = ({
   onConfirmBooking,
   onOpenScan,
   onOpenAttendance,
+  onOpenTemplates,
+  onOpenPublicRegistration,
   bookingLoading,
 }) => {
+  const subjectTheme = getCourseTheme(training.numeroSeance, training.theme);
   const isConfirmed = registration?.statut === 'CONFIRMEE';
   const isWaitlisted = registration?.statut === 'LISTE_ATTENTE';
   const isCancelled = registration?.statut === 'ANNULEE';
   const hasRegistered = !!registration && !isCancelled;
 
-  const totalCap = training.capaciteMax || 25;
+  const totalCap = training.capaciteMax || 32;
   const reserved = training.placesReservees || 0;
   const remaining = Math.max(0, training.placesRestantes ?? (totalCap - reserved));
   const isFull = remaining <= 0;
@@ -64,6 +77,45 @@ export const TrainingCard: React.FC<Props> = ({
 
   return (
     <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between group">
+      {/* Thematic Header Bar for the Course Subject */}
+      <div
+        className="px-5 py-2.5 flex items-center justify-between border-b text-xs font-bold"
+        style={{
+          backgroundColor: subjectTheme.bgTint,
+          borderColor: `${subjectTheme.borderColor}30`,
+        }}
+      >
+        <div className="flex items-center gap-2 truncate">
+          <span
+            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 shadow-2xs"
+            style={{
+              backgroundColor: subjectTheme.badgeBg,
+              border: `1px solid ${subjectTheme.borderColor}50`,
+            }}
+          >
+            <ThemeEmblem
+              type={subjectTheme.emblemType || 'ambulance_samu'}
+              size={18}
+              color={subjectTheme.primaryColor}
+            />
+          </span>
+          <span className="truncate text-[11px] uppercase tracking-wide font-extrabold" style={{ color: subjectTheme.primaryColor }}>
+            Thème : {subjectTheme.emblemLabel} • {subjectTheme.themeTagline}
+          </span>
+        </div>
+
+        <span
+          className="text-[10px] px-2 py-0.5 rounded-md font-bold uppercase shrink-0 border"
+          style={{
+            backgroundColor: subjectTheme.badgeBg,
+            color: subjectTheme.badgeText,
+            borderColor: `${subjectTheme.borderColor}40`,
+          }}
+        >
+          {subjectTheme.medicalDomain}
+        </span>
+      </div>
+
       {/* Top Banner with date tag & status */}
       <div className="p-5 pb-3">
         <div className="flex items-center justify-between gap-2 mb-2.5">
@@ -136,11 +188,69 @@ export const TrainingCard: React.FC<Props> = ({
           {training.theme}
         </h3>
 
+        {/* Thematic Subject Presentation */}
+        <div
+          className="mt-3 p-3 rounded-2xl border text-xs space-y-2 transition-all"
+          style={{
+            backgroundColor: subjectTheme.bgTint,
+            borderColor: `${subjectTheme.borderColor}30`,
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <span
+              className="text-[10.5px] font-extrabold uppercase tracking-wider flex items-center gap-1.5"
+              style={{ color: subjectTheme.primaryColor }}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              Présentation du Sujet
+            </span>
+            <span
+              className="text-[10px] font-bold px-1.5 py-0.2 rounded"
+              style={{
+                backgroundColor: subjectTheme.badgeBg,
+                color: subjectTheme.badgeText,
+              }}
+            >
+              Thème #{subjectTheme.seanceNumber}
+            </span>
+          </div>
+
+          <p className="text-[11.5px] text-slate-700 leading-relaxed line-clamp-2">
+            {subjectTheme.themePresentation}
+          </p>
+
+          {/* Key theme concepts / competencies */}
+          <div className="flex flex-wrap gap-1 pt-1">
+            {subjectTheme.keyConcepts.slice(0, 3).map((concept, idx) => (
+              <span
+                key={idx}
+                className="text-[10px] px-2 py-0.5 rounded-md font-medium bg-white/95 text-slate-700 border border-slate-200/90 shadow-2xs"
+              >
+                • {concept}
+              </span>
+            ))}
+          </div>
+        </div>
+
         {/* Formateur & Horaires */}
         <div className="mt-3 space-y-1.5 text-xs text-slate-600">
           <div className="flex items-center gap-1.5 text-slate-700">
             <User className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-            <span className="font-medium text-slate-900">{training.formateur}</span>
+            <span
+              className={`font-medium ${
+                (training.formateurs && training.formateurs.length > 0) || training.formateur
+                  ? 'text-slate-900'
+                  : 'text-slate-400 italic'
+              }`}
+            >
+              {training.formateurs && training.formateurs.length > 1
+                ? `Formateurs (${training.formateurs.length}) : ${training.formateurs.map((f) => f.nom).join(', ')}`
+                : training.formateurs && training.formateurs.length === 1
+                ? `Formateur : ${training.formateurs[0].nom}${training.formateurs[0].qualite ? ` (${training.formateurs[0].qualite})` : ''}`
+                : training.formateur
+                ? `Formateur : ${training.formateur}`
+                : 'Formateur : À désigner (à remplir ultérieurement)'}
+            </span>
           </div>
           <div className="flex items-center justify-between gap-2 text-slate-500">
             <div className="flex items-center gap-1.5">
@@ -210,50 +320,74 @@ export const TrainingCard: React.FC<Props> = ({
               <span>Présences</span>
             </button>
           )}
+
+          {onOpenTemplates && (
+            <button
+              onClick={() => onOpenTemplates(training)}
+              className="text-xs font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 transition-colors py-2 px-2.5 rounded-xl flex items-center gap-1 shadow-2xs"
+              title="Afficher les modèles élégants Full HD (1080p)"
+            >
+              <Tv className="w-3.5 h-3.5 text-amber-600" />
+              <span>Modèles HD</span>
+            </button>
+          )}
         </div>
 
-        {isConfirmed ? (
-          <div className="flex items-center gap-2">
-            {onOpenScan && (training.pointageArriveeOuvert || training.pointageSortieOuvert) && (
-              <button
-                onClick={() => onOpenScan(training)}
-                className="px-3.5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
-              >
-                <QrCode className="w-3.5 h-3.5" />
-                Scanner Présence
-              </button>
-            )}
-            <span className="px-3 py-2 text-xs font-bold text-emerald-800 bg-emerald-100 rounded-xl flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Place Confirmée
+        <div className="flex flex-wrap items-center gap-2">
+          {onOpenPublicRegistration && (
+            <button
+              onClick={() => onOpenPublicRegistration(training.id)}
+              className="px-3 py-2 text-xs font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+              title="Ouvrir la page publique d'inscription (sans compte ni mot de passe)"
+            >
+              <UserPlus className="w-3.5 h-3.5 text-amber-700" />
+              <span>Page Publique</span>
+            </button>
+          )}
+
+          {isConfirmed ? (
+            <div className="flex items-center gap-2">
+              {onOpenScan && (training.pointageArriveeOuvert || training.pointageSortieOuvert) && (
+                <button
+                  onClick={() => onOpenScan(training)}
+                  className="px-3.5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+                >
+                  <QrCode className="w-3.5 h-3.5" />
+                  Scanner Présence
+                </button>
+              )}
+              <span className="px-3 py-2 text-xs font-bold text-emerald-800 bg-emerald-100 rounded-xl flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Place Confirmée
+              </span>
+            </div>
+          ) : isWaitlisted ? (
+            <span className="px-3 py-2 text-xs font-bold text-amber-800 bg-amber-100 rounded-xl">
+              Sur liste d'attente
             </span>
-          </div>
-        ) : isWaitlisted ? (
-          <span className="px-3 py-2 text-xs font-bold text-amber-800 bg-amber-100 rounded-xl">
-            Sur liste d'attente
-          </span>
-        ) : deadlinePassed ? (
-          <span className="text-xs text-slate-400 font-medium px-3 py-2">
-            Inscriptions closes
-          </span>
-        ) : (
-          <button
-            onClick={() => onConfirmBooking(training)}
-            disabled={bookingLoading}
-            className={`px-4 py-2.5 text-xs sm:text-sm font-bold text-white rounded-xl shadow-md transition-all flex items-center gap-1.5 ${
-              isFull
-                ? 'bg-amber-600 hover:bg-amber-700'
-                : 'bg-[#0A2540] hover:bg-[#0F2F57]'
-            } disabled:opacity-50`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            {bookingLoading
-              ? 'Enregistrement...'
-              : isFull
-              ? "S'INSCRIRE SUR LISTE D'ATTENTE"
-              : 'CONFIRMER MA PARTICIPATION'}
-          </button>
-        )}
+          ) : deadlinePassed ? (
+            <span className="text-xs text-slate-400 font-medium px-3 py-2">
+              Inscriptions closes
+            </span>
+          ) : (
+            <button
+              onClick={() => onConfirmBooking(training)}
+              disabled={bookingLoading}
+              className={`px-4 py-2.5 text-xs sm:text-sm font-bold text-white rounded-xl shadow-md transition-all flex items-center gap-1.5 ${
+                isFull
+                  ? 'bg-amber-600 hover:bg-amber-700'
+                  : 'bg-[#0A2540] hover:bg-[#0F2F57]'
+              } disabled:opacity-50 cursor-pointer`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              {bookingLoading
+                ? 'Enregistrement...'
+                : isFull
+                ? "S'INSCRIRE SUR LISTE D'ATTENTE"
+                : 'CONFIRMER MA PARTICIPATION'}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

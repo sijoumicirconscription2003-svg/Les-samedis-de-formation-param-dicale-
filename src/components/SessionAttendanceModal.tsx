@@ -35,10 +35,10 @@ export const SessionAttendanceModal: React.FC<Props> = ({
   const [filterTab, setFilterTab] = useState<'ALL' | 'PRESENT' | 'ABSENT'>('ALL');
   const [search, setSearch] = useState('');
 
-  // Manual check-in state
   const [manualTarget, setManualTarget] = useState<Registration | null>(null);
   const [manualMotif, setManualMotif] = useState('');
   const [manualLoading, setManualLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen || !training) return;
@@ -113,8 +113,9 @@ export const SessionAttendanceModal: React.FC<Props> = ({
       );
       setManualTarget(null);
       setManualMotif('');
+      setErrorMessage(null);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Erreur de validation.');
+      setErrorMessage(err instanceof Error ? err.message : 'Erreur de validation.');
     } finally {
       setManualLoading(false);
     }
@@ -180,9 +181,9 @@ export const SessionAttendanceModal: React.FC<Props> = ({
                 {training.theme}
               </h2>
               <p className="text-xs text-slate-300 mt-1 flex items-center gap-2">
-                <span>Formateur : {training.formateur}</span>
+                <span>Formateur : {training.formateur || 'À désigner'}</span>
                 <span>•</span>
-                <span>Capacité : {training.capaciteMax || 25} places</span>
+                <span>Capacité : {training.capaciteMax || 32} places</span>
               </p>
             </div>
 
@@ -219,7 +220,7 @@ export const SessionAttendanceModal: React.FC<Props> = ({
               {stats.totalEnregistres}
             </div>
             <div className="text-[11px] text-slate-500 mt-1">
-              sur {training.capaciteMax || 25} places ({training.placesRestantes ?? (training.capaciteMax - stats.totalEnregistres)} libres)
+              sur {training.capaciteMax || 32} places ({training.placesRestantes ?? ((training.capaciteMax || 32) - stats.totalEnregistres)} libres)
             </div>
           </div>
 
@@ -456,6 +457,11 @@ export const SessionAttendanceModal: React.FC<Props> = ({
             </div>
 
             <form onSubmit={handleManualOverride} className="space-y-3 text-xs">
+              {errorMessage && (
+                <div className="p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl font-medium">
+                  {errorMessage}
+                </div>
+              )}
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">
                   Motif de validation d'assiduité <span className="text-red-500">*</span>

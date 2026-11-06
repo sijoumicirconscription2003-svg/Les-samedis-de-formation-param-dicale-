@@ -32,6 +32,7 @@ interface Props {
   onOpenProfile: () => void;
   onOpenScanner: () => void;
   onOpenShare?: () => void;
+  onOpenPublicRegistration?: (trainingId: string) => void;
   confirmedBookingsCount: number;
   notifications: NotificationItem[];
 }
@@ -42,10 +43,11 @@ export const Navbar: React.FC<Props> = ({
   onOpenProfile,
   onOpenScanner,
   onOpenShare,
+  onOpenPublicRegistration,
   confirmedBookingsCount,
   notifications,
 }) => {
-  const { currentUser, userProfile, isAdmin, isResponsable, signInWithGoogle, signOut } =
+  const { currentUser, userProfile, isAdmin, isResponsable, signInWithGoogle, signOut, signingIn } =
     useAuth();
 
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -68,8 +70,12 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => handleNavClick('accueil')}
             className="flex items-center gap-2.5 cursor-pointer shrink-0"
           >
-            <div className="w-10 h-10 rounded-xl bg-[#0A2540] flex items-center justify-center text-amber-400 shadow-md border border-amber-400/30">
-              <Award className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center p-1 shadow-md border border-slate-200 overflow-hidden">
+              <img
+                src="/assets/logo_gsb_tunis_sud.png"
+                alt="GSB Tunis Sud"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <div className="text-xs font-extrabold tracking-tight text-[#0A2540] leading-none uppercase">
@@ -164,6 +170,21 @@ export const Navbar: React.FC<Props> = ({
 
           {/* Right Action Icons & User Profile */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Quick Inscription Séance #3 Button */}
+            {onOpenPublicRegistration && (
+              <button
+                onClick={() => onOpenPublicRegistration('training-fmc-s03')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-800 to-indigo-900 hover:from-purple-900 hover:to-indigo-950 text-white border border-purple-400/50 rounded-xl text-xs font-extrabold transition-all shadow-xs cursor-pointer"
+                title="Accéder directement au formulaire d'inscription pour la Séance #3 (7 Novembre)"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                <span>Inscription Séance #3</span>
+                <span className="hidden lg:inline px-1.5 py-0.2 rounded-md bg-amber-400 text-slate-950 font-black text-[9px]">
+                  7 Nov
+                </span>
+              </button>
+            )}
+
             {/* Share app link button */}
             {onOpenShare && (
               <button
@@ -268,10 +289,11 @@ export const Navbar: React.FC<Props> = ({
             ) : (
               <button
                 onClick={signInWithGoogle}
-                className="px-4 py-2 bg-[#0A2540] hover:bg-[#0F2F57] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+                disabled={signingIn}
+                className="px-4 py-2 bg-[#0A2540] hover:bg-[#0F2F57] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-60"
               >
                 <LogIn className="w-3.5 h-3.5 text-amber-300" />
-                Connexion
+                {signingIn ? 'Connexion...' : 'Connexion'}
               </button>
             )}
 

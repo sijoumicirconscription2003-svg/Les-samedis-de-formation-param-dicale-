@@ -14,6 +14,14 @@ export interface UserProfile {
   updatedAt?: string;
 }
 
+export interface FormateurItem {
+  id?: string;
+  nom: string;
+  qualite?: string;
+  telephone?: string;
+  email?: string;
+}
+
 export type TrainingStatus = 'a_venir' | 'en_cours' | 'cloturee' | 'annulee';
 
 export interface TrainingSession {
@@ -24,12 +32,17 @@ export interface TrainingSession {
   publicCible?: string;
   formateur: string;
   qualiteFormateur?: string;
+  formateurs?: FormateurItem[];
   date: string; // YYYY-MM-DD (Samedi)
   heureDebut: string; // e.g. 08:30
   heureFin: string; // e.g. 13:00
   dureeHeures: string; // e.g. "4h30"
   lieu: string; // "Salle de réunion du Centre Intermédiaire Ali Trad"
-  capaciteMax: number; // e.g. 25
+  capaciteMax: number; // e.g. 32
+  capaciteNormale?: number; // 32
+  autoriserPlacesSupp?: boolean; // toggle for 3 extra places (33, 34, 35)
+  capaciteMaxAutorisee?: number; // 35
+  inscriptionsFermees?: boolean; // administrative lock
   placesReservees: number;
   placesRestantes: number;
   nbListeAttente: number;
@@ -49,7 +62,7 @@ export interface TrainingSession {
   updatedAt: string;
 }
 
-export type RegistrationStatus = 'CONFIRMEE' | 'LISTE_ATTENTE' | 'ANNULEE';
+export type RegistrationStatus = 'CONFIRMEE' | 'LISTE_ATTENTE' | 'ANNULEE' | 'REFUSEE';
 export type AttendanceStatus = 'ABSENT' | 'ARRIVEE_SEULE' | 'SORTIE_SEULE' | 'COMPLETE';
 
 export interface Registration {
@@ -58,10 +71,12 @@ export interface Registration {
   userId: string;
   nom: string;
   prenom: string;
-  matricule: string;
+  matricule?: string;
   fonction: string;
+  profession?: string;
   etablissement: string;
-  email: string;
+  circonscription?: string;
+  email?: string;
   telephone?: string;
   numeroReservation: string; // e.g. RES-2026-AT-0428
   statut: RegistrationStatus;
@@ -101,6 +116,8 @@ export interface Certificate {
   estDerogation: boolean;
   motifDerogation?: string;
   codeVerification: string;
+  numeroSeance?: number;
+  domaine?: string;
 }
 
 export interface AuditLog {

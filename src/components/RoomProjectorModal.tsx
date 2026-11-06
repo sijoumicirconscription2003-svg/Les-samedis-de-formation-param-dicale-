@@ -287,7 +287,11 @@ export const RoomProjectorModal: React.FC<Props> = ({
               </div>
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-blue-400 shrink-0" />
-                <span>Formateur : {training.formateur}</span>
+                <span>
+                  {training.formateurs && training.formateurs.length > 1
+                    ? `Formateurs (${training.formateurs.length}) : ${training.formateurs.map((f) => f.nom).join(', ')}`
+                    : `Formateur : ${training.formateur || 'À désigner'}`}
+                </span>
               </div>
             </div>
           </div>
@@ -297,7 +301,7 @@ export const RoomProjectorModal: React.FC<Props> = ({
             <div className="bg-[#0A2540] border border-white/10 rounded-2xl p-4 text-center">
               <span className="text-xs text-slate-400 block mb-1">Inscrits confirmés</span>
               <span className="text-2xl font-bold text-white">{confirmedCount}</span>
-              <span className="text-[11px] text-slate-400 block">/ {training.capaciteMax || 25} places</span>
+              <span className="text-[11px] text-slate-400 block">/ {training.capaciteMax || 32} places</span>
             </div>
 
             <div className="bg-[#0A2540] border border-white/10 rounded-2xl p-4 text-center">
